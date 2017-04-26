@@ -35,8 +35,6 @@ var asteroid;
 var life = 0;
 var lifeString= '';
 var lifeText;
-var scoreText;
-var livesText;
 var introText;
 
 function create() {
@@ -75,7 +73,7 @@ function create() {
 
     // The life settings
     lifeText = game.add.text(16, 16, 'Life: 3', { fontSize: '32px', fill: '#000' });
-		lifeString = 'life : ';
+		lifeString = 'Life : ';
 		life = 3;
 
     // The instruction  settings
@@ -85,7 +83,7 @@ function create() {
 
     // Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-		resetButton = game.input.keyboard.addKey(Phaser.Keyboard.A);
+		//resetButton = game.input.keyboard.addKey(Phaser.Keyboard.A);
 
 }
 
@@ -151,12 +149,10 @@ function collisionHandler (player, asteroid) {
 function collisionlife (player, heart) {
     //  When ship hits heart we kill heart
     heart.kill();
-		//
 		life = life +1;
 		lifeText.text = lifeString + life;
 
 }
-
 
 function gameOver () {
 player.body.velocity.setTo(0, 0);
