@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
-    <title>Phaser - Making your first game, part 9</title>
+    <title>fly game</title>
 	<script type="text/javascript" src="js/phaser.min.js"></script>
     <style type="text/css">
         body {
@@ -18,8 +18,7 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create
 
 function preload() {
 
-    game.load.image('sky', 'assets/sky.png');
-    game.load.image('ground', 'assets/platform.png');
+    game.load.image('sky', 'assets/espace.png');
     game.load.image('asteroid', 'assets/asteroid.png');
     game.load.image('player', 'assets/ship.png');
 		game.load.image('heart', 'assets/coeur.png');
@@ -36,9 +35,9 @@ var life = 0;
 var lifeString= '';
 var lifeText;
 var introText;
+var  frames;
 
 function create() {
-
 
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -56,12 +55,17 @@ function create() {
     game.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
 
-   // create  element  asteroid
+   // create  element moving asteroid
     asteroid = game.add.group();
     asteroid.enableBody = true;
 		for (var i = 0; i < 20; i++)
 		{
-				asteroid.create(game.world.randomX, game.world.randomY, 'asteroid');
+			var superAsteroid = asteroid.create(game.world.randomX, game.world.randomY, 'asteroid');
+			superAsteroid.name = 'asteroid' + 	superAsteroid;
+			superAsteroid.body.collideWorldBounds = true;
+			superAsteroid.body.bounce.setTo(0.8, 0.8);
+			superAsteroid.body.velocity.setTo(10 + Math.random() * 50, 10 + Math.random() * 50);
+
 		}
 
 		// create element heart
@@ -69,10 +73,8 @@ function create() {
 				game.physics.arcade.enable(heart);
 				heart.body.collideWorldBounds = true;
 
-
-
     // The life settings
-    lifeText = game.add.text(16, 16, 'Life: 3', { fontSize: '32px', fill: '#000' });
+    lifeText = game.add.text(16, 16, 'Life: 3', { fontSize: '32px', fill: "#ffffff" });
 		lifeString = 'Life : ';
 		life = 3;
 
@@ -83,27 +85,29 @@ function create() {
 
     // Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-		//resetButton = game.input.keyboard.addKey(Phaser.Keyboard.A);
+
+		spaceKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    spaceKey.onDown.add(togglePause, this);
 
 }
 
+function togglePause() {//bug
+
+    game.physics.arcade.isPaused = (game.physics.arcade.isPaused) ? false : true;
+
+}
 function update() {
     //  Collide the player and the asteroid with the platforms
     game.physics.arcade.collide(player, platforms);
+		game.physics.arcade.collide(asteroid, heart);
+		game.physics.arcade.collide(asteroid, asteroid);
     game.physics.arcade.collide(player, asteroid,collisionHandler, null, this);
 		game.physics.arcade.collide(player, heart, collisionlife, null, this );
 
     //  Reset the players velocity (movement)
     player.body.velocity.x = 0;
 
-    if (cursors.left.isDown)
-    {
-        //  Move to the left
-        player.body.velocity.x = -150;
-
-        player.animations.play('left');
-    }
-    else if (cursors.right.isDown)
+     if (cursors.right.isDown)
     {
         //  Move to the right
         player.body.velocity.x = 150;
@@ -136,7 +140,6 @@ function collisionHandler (player, asteroid) {
     //  When ship hits an asteroid we kill them both
     asteroid.kill();
     player.kill();
-		//
 		life = life - 1;
 		lifeText.text = lifeString + life;
 		//debugger;
@@ -146,18 +149,21 @@ function collisionHandler (player, asteroid) {
 			player.reset( player.body.x -0, player.y +0);
 		}
 }
+
 function collisionlife (player, heart) {
     //  When ship hits heart we kill heart
     heart.kill();
 		life = life +1;
 		lifeText.text = lifeString + life;
-
 }
 
 function gameOver () {
 player.body.velocity.setTo(0, 0);
-introText.text = 'Game Over!';
+introText.text = 'Game Over !!!';
 introText.visible = true;
+}
+
+function render() {
 }
 
 </script>
