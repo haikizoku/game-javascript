@@ -22,9 +22,9 @@ function preload() {
     game.load.image('asteroid', 'assets/asteroid.png');
     game.load.image('player', 'assets/ship.png');
 		game.load.image('heart', 'assets/coeur.png');
+		game.load.image('laser', 'assets/bullet.png');
 
 }
-
 //def variables
 var player;
 var platforms;
@@ -32,20 +32,18 @@ var cursors;
 var heart;
 var asteroid;
 var life = 0;
-var time = 00;
+var score = 00;
 var lifeString= '';
-var timeString= '';
+var scoreString= '';
 var lifeText;
-var timeText;
+var scoreText;
 var introText;
-var  frames;
-var timer ;
+var scorer ;
+var weapon;
 
 function create() {
-
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
-
     //  A simple background for our game
     game.add.sprite(0, 0, 'sky');
     platforms = game.add.group();
@@ -72,20 +70,33 @@ function create() {
 
 		}
 
-		// create element heart
-				heart= game.add.sprite(600,500, 'heart');
-				game.physics.arcade.enable(heart);
-				heart.body.collideWorldBounds = true;
+			// create element heart
+			heart= game.add.sprite(600,500, 'heart');
+			game.physics.arcade.enable(heart);
+			heart.body.collideWorldBounds = true;
+
+			//  Creates bullet
+			weapon = this.add.weapon(30, 'laser');
+
+		//  The bullet will be automatically killed when it leaves the world bounds
+    weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+
+    //  The speed at which the bullet is fired
+    weapon.bulletSpeed = 600;
+    //  Speed-up the rate of fire, allowing them to shoot 1 bullet every 60ms
+    weapon.fireRate = 100;
+    //  Tell the Weapon to track the 'player'
+    weapon.trackSprite(player, 0, 0);
 
     // The life settings
     lifeText = game.add.text(16, 16, 'Life: 3', { fontSize: '32px', fill: "#ffffff" });
 		lifeString = 'Life : ';
 		life = 3;
 
-		// The time settings
-		timeText = game.add.text(600, 16, 'Time: 00', { fontSize: '32px', fill: "#ffffff" });
-		timeString = 'Time : ';
-		time = 00;
+		// The score settings
+		scoreText = game.add.text(600, 16, 'score: 00', { fontSize: '32px', fill: "#ffffff" });
+		scoreString = 'score : ';
+		score = 00;
 
     // The instruction  settings
 		introText = game.add.text(game.world.centerX, 400, '', { font: "40px Arial", fill: "#ffffff", align: "center" });
@@ -94,22 +105,7 @@ function create() {
 
     // Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-		spaceKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    spaceKey.onDown.add(togglePause, this);
-
-		//  Create our Timer
-	timer = game.time.create(false);
-
-	//  Set a TimerEvent to occur after 3 seconds
-	timer.add(3000, fadePictures, this);
-
-	//  Start the timer running - this is important!
-	//  It won't start automatically, allowing you to hook it to button events and the like.
-	timer.start();
-
-
-
-
+		fireButton = this.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);
 
 }
 
@@ -119,12 +115,15 @@ function togglePause() {//bug
 
 }
 function update() {
-    //  Collide the player and the asteroid with the platforms
+
+    // Collide the player and the asteroid with the platforms
     game.physics.arcade.collide(player, platforms);
 		game.physics.arcade.collide(asteroid, heart);
 		game.physics.arcade.collide(asteroid, asteroid);
     game.physics.arcade.collide(player, asteroid,collisionHandler, null, this);
 		game.physics.arcade.collide(player, heart, collisionlife, null, this );
+		game.physics.arcade.collide(weapon, asteroid, collisionwin, null, this );
+
 
     // Reset the players velocity (movement)
     player.body.velocity.x = 0;
@@ -154,6 +153,11 @@ function update() {
 			player.animations.play('up');
 		}
 
+		if (fireButton.isDown)
+	 {
+			 weapon.fire();
+	 }
+
     else
     {
         //  Stand still
@@ -170,7 +174,6 @@ function collisionHandler (player, asteroid) {
 
 		life = life - 1;
 		lifeText.text = lifeString + life;
-		//debugger;
 		if (life == 0){
 				gameOver();
 		}else{
@@ -197,18 +200,17 @@ introText.text = 'Congratulation  Level  complete !!!';
 introText.visible = true;
 }
 
-function timer(){
-for (var time = 0; i < 10; time++) {
-
-}
-
-timeText.text = timeString +time;
-
-}
-
+ function collisionwin(weapon,asteroid){
+	 debug;
+	weapon.kill();
+	asteroid.kill();
+	score = score + 1;
+	scoreText.text =scoreString +score;
+ }
 
 function render() {
-	game.debug.text("Time until event: " + timer.duration.toFixed(0), 10, 20);
+
+    weapon.debug();
 
 }
 
